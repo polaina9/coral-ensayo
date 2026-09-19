@@ -293,6 +293,62 @@ select {
 
 })();
 </script>
+<button id="pruebaAudio" style="
+    width:100%;
+    height:50px;
+    font-size:18px;
+    margin-top:20px;
+">
+    Probar audio
+</button>
 
+<div id="estadoAudio" class="estado"></div>
+
+<script>
+document.getElementById("pruebaAudio").onclick = function () {
+
+    var AudioContext =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+    if (!AudioContext) {
+        document.getElementById("estadoAudio").innerHTML =
+            "Web Audio NO disponible";
+        return;
+    }
+
+    try {
+
+        var contexto = new AudioContext();
+
+        var osc = contexto.createOscillator();
+        var ganancia = contexto.createGain();
+
+        osc.type = "sine";
+        osc.frequency.value = 440;
+
+        osc.connect(ganancia);
+        ganancia.connect(contexto.destination);
+
+        ganancia.gain.value = 0.2;
+
+        osc.start(0);
+
+        setTimeout(function () {
+            osc.stop(0);
+        }, 1000);
+
+        document.getElementById("estadoAudio").innerHTML =
+            "Web Audio funciona correctamente";
+
+    } catch (e) {
+
+        document.getElementById("estadoAudio").innerHTML =
+            "Error de audio: " + e.message;
+
+    }
+
+};
+</script>
 </body>
 </html>
