@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Coral - iPad</title>
+
+<style>
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #fafaf7;
+    color: #222;
+    text-align: center;
+}
+
+h1 {
+    font-size: 24px;
+}
+
+.caja {
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 20px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+}
+
+.ok {
+    color: green;
+    font-weight: bold;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Coral Villa de Mengíbar</h1>
+
+<div class="caja">
+    <div class="ok">Modo compatible con iPad</div>
+
+    <p>
+        Esta página está funcionando con JavaScript
+        compatible con navegadores antiguos.
+    </p>
+
+    <p id="version"></p>
+</div>
+
+<script>
+(function () {
+
+    var texto = "Navegador: " + navigator.userAgent;
+
+    document.getElementById("version").innerHTML = texto;
+
+})();
+</script>
+
+</body>
+</html>
