@@ -32,17 +32,106 @@ label {
     margin-bottom: 6px;
 }
 
-select {
+select,
+input {
+    box-sizing: border-box;
     width: 100%;
     height: 44px;
     font-size: 16px;
     padding: 5px;
+}
+
+select {
     margin-bottom: 15px;
+}
+
+.panel {
+    background: #ffffff;
+    border: 1px solid #ccc;
+    padding: 12px;
+    margin: 15px 0;
+}
+
+.fila {
+    margin-bottom: 12px;
+}
+
+.columnas {
+    overflow: hidden;
+}
+
+.columna {
+    float: left;
+    width: 48%;
+}
+
+.columna-derecha {
+    float: right;
+    width: 48%;
+}
+
+.limpiar {
+    clear: both;
+}
+
+.voz {
+    width: 48%;
+    height: 44px;
+    margin: 1%;
+    float: left;
+    font-size: 15px;
+    border: 1px solid #888;
+    background: #eee;
+    color: #222;
+    -webkit-appearance: none;
+    border-radius: 3px;
+}
+
+.voz-activa {
+    background: #333;
+    color: white;
+}
+
+.boton {
+    height: 50px;
+    font-size: 17px;
+    border: 1px solid #777;
+    border-radius: 4px;
+    background: #eeeeee;
+    color: #111;
+    -webkit-appearance: none;
+}
+
+.boton-play {
+    width: 64%;
+}
+
+.boton-stop {
+    width: 33%;
+    float: right;
+}
+
+.tempo {
+    overflow: hidden;
+}
+
+.tempo button {
+    width: 22%;
+    height: 44px;
+    font-size: 22px;
+    float: left;
+}
+
+.tempo input {
+    width: 52%;
+    float: left;
+    margin: 0 2%;
+    text-align: center;
 }
 
 .estado {
     text-align: center;
-    padding: 15px;
+    padding: 12px;
     color: #666;
 }
 
@@ -53,7 +142,15 @@ select {
 .titulo-obra {
     text-align: center;
     font-size: 20px;
+    font-weight: bold;
     margin: 15px 0;
+}
+
+.reproduciendo {
+    text-align: center;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px;
 }
 
 .partitura {
@@ -62,6 +159,1838 @@ select {
 }
 
 .pagina {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin: 0 auto 15px auto;
+    background: white;
+    border: 1px solid #ddd;
+}
+
+.info {
+    text-align: center;
+    font-size: 12px;
+    color: #777;
+    margin-top: 20px;
+}
+
+#panelReproductor {
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <h1>Coral Villa de Mengíbar</h1>
+
+    <label for="obra">Selecciona una obra:</label>
+
+    <select id="obra">
+        <option value="">Cargando obras...</option>
+    </select>
+
+    <div id="titulo" class="titulo-obra"></div>
+
+    <div id="estado" class="estado">
+        Cargando lista de partituras...
+    </div>
+
+
+    <!-- REPRODUCTOR -->
+    <div id="panelReproductor" class="panel">
+
+        <div class="fila">
+            <label>Voz:</label>
+
+            <button id="vozP1" class="voz voz-activa" type="button">
+                Soprano
+            </button>
+
+            <button id="vozP2" class="voz" type="button">
+                Contralto
+            </button>
+
+            <button id="vozP3" class="voz" type="button">
+                Tenor
+            </button>
+
+            <button id="vozP4" class="voz" type="button">
+                Bajo
+            </button>
+
+            <div class="limpiar"></div>
+        </div>
+
+
+        <div class="fila">
+            <label>Tempo (BPM):</label>
+
+            <div class="tempo">
+                <button id="tempoMenos" type="button">-</button>
+
+                <input
+                    id="tempo"
+                    type="number"
+                    value="80"
+                    min="30"
+                    max="240"
+                >
+
+                <button id="tempoMas" type="button">+</button>
+            </div>
+
+            <div class="limpiar"></div>
+        </div>
+
+
+        <div class="fila columnas">
+
+            <div class="columna">
+                <label for="compasInicio">
+                    Desde compás:
+                </label>
+
+                <input
+                    id="compasInicio"
+                    type="number"
+                    value="1"
+                    min="1"
+                >
+            </div>
+
+            <div class="columna columna-derecha">
+                <label for="compasFin">
+                    Hasta compás:
+                </label>
+
+                <input
+                    id="compasFin"
+                    type="number"
+                    value="1"
+                    min="1"
+                >
+            </div>
+
+            <div class="limpiar"></div>
+
+        </div>
+
+
+        <div class="fila">
+
+            <button
+                id="reproducir"
+                class="boton boton-play"
+                type="button"
+            >
+                &#9654; Reproducir
+            </button>
+
+            <button
+                id="parar"
+                class="boton boton-stop"
+                type="button"
+            >
+                &#9632; Parar
+            </button>
+
+            <div class="limpiar"></div>
+
+        </div>
+
+
+        <div id="estadoReproductor" class="reproduciendo">
+            Preparado
+        </div>
+
+    </div>
+
+
+    <!-- PARTITURA -->
+    <div id="partitura" class="partitura"></div>
+
+
+    <div class="info">
+        Versión compatible con iPad / iOS 9
+    </div>
+
+</div>
+
+
+<script>
+(function () {
+
+    /* =========================================================
+       VARIABLES GENERALES
+       ========================================================= */
+
+    var obras = [];
+
+    var obraActual = null;
+    var xmlActual = null;
+
+    var vozActual = "P1";
+
+    var contextoAudio = null;
+
+    var osciladoresActivos = [];
+
+    var reproduciendo = false;
+
+    var temporizadorFin = null;
+
+
+    /* =========================================================
+       ELEMENTOS HTML
+       ========================================================= */
+
+    var selector = document.getElementById("obra");
+    var estado = document.getElementById("estado");
+    var partitura = document.getElementById("partitura");
+    var titulo = document.getElementById("titulo");
+
+    var panelReproductor =
+        document.getElementById("panelReproductor");
+
+    var estadoReproductor =
+        document.getElementById("estadoReproductor");
+
+    var tempoInput =
+        document.getElementById("tempo");
+
+    var compasInicio =
+        document.getElementById("compasInicio");
+
+    var compasFin =
+        document.getElementById("compasFin");
+
+
+    /* =========================================================
+       CARGAR LISTA DE OBRAS
+       ========================================================= */
+
+    function cargarLista() {
+
+        var xhr = new XMLHttpRequest();
+
+        xhr.open(
+            "GET",
+            "partituras/lista.json",
+            true
+        );
+
+        xhr.onreadystatechange = function () {
+
+            if (xhr.readyState === 4) {
+
+                if (
+                    xhr.status === 200 ||
+                    xhr.status === 0
+                ) {
+
+                    try {
+
+                        obras =
+                            JSON.parse(
+                                xhr.responseText
+                            );
+
+                        mostrarLista();
+
+                    } catch (e) {
+
+                        mostrarError(
+                            "No se ha podido interpretar la lista."
+                        );
+
+                    }
+
+                } else {
+
+                    mostrarError(
+                        "No se ha podido cargar la lista de partituras."
+                    );
+
+                }
+
+            }
+
+        };
+
+        xhr.send(null);
+    }
+
+
+    function mostrarLista() {
+
+        var i;
+        var opcion;
+
+        selector.innerHTML = "";
+
+        opcion =
+            document.createElement("option");
+
+        opcion.value = "";
+
+        opcion.appendChild(
+            document.createTextNode(
+                "Selecciona una obra"
+            )
+        );
+
+        selector.appendChild(opcion);
+
+
+        for (i = 0; i < obras.length; i++) {
+
+            opcion =
+                document.createElement("option");
+
+            opcion.value = i;
+
+            opcion.appendChild(
+                document.createTextNode(
+                    obras[i].titulo
+                )
+            );
+
+            selector.appendChild(opcion);
+        }
+
+
+        estado.innerHTML =
+            "Se han cargado " +
+            obras.length +
+            " partituras.";
+    }
+
+
+    /* =========================================================
+       SELECCIONAR OBRA
+       ========================================================= */
+
+    function cargarObra(indice) {
+
+        parar();
+
+        partitura.innerHTML = "";
+        titulo.innerHTML = "";
+
+        panelReproductor.style.display =
+            "none";
+
+        xmlActual = null;
+        obraActual = null;
+
+
+        if (indice === "") {
+
+            estado.innerHTML =
+                "Selecciona una obra.";
+
+            return;
+        }
+
+
+        obraActual =
+            obras[
+                parseInt(indice, 10)
+            ];
+
+
+        if (!obraActual) {
+
+            mostrarError(
+                "No se ha encontrado la obra."
+            );
+
+            return;
+        }
+
+
+        titulo.innerHTML =
+            obraActual.titulo;
+
+
+        cargarImagenes(obraActual);
+
+        cargarMusicXML(obraActual);
+    }
+
+
+    /* =========================================================
+       CARGAR IMAGENES
+       ========================================================= */
+
+    function cargarImagenes(obra) {
+
+        var paginas =
+            obra.paginas;
+
+        var i;
+        var imagen;
+
+
+        if (
+            !paginas ||
+            paginas.length === 0
+        ) {
+
+            return;
+        }
+
+
+        for (
+            i = 0;
+            i < paginas.length;
+            i++
+        ) {
+
+            imagen =
+                document.createElement("img");
+
+            imagen.className =
+                "pagina";
+
+            imagen.src =
+                "partituras/" +
+                paginas[i];
+
+            imagen.alt =
+                obra.titulo +
+                " - página " +
+                (i + 1);
+
+            partitura.appendChild(imagen);
+        }
+    }
+
+
+    /* =========================================================
+       LOCALIZAR ARCHIVO MUSICXML
+       ========================================================= */
+
+    function obtenerRutaXML(obra) {
+
+        /*
+         * Intentamos diferentes nombres habituales
+         * por si lista.json utiliza una propiedad
+         * distinta.
+         */
+
+        if (obra.musicxml) {
+            return "partituras/" +
+                obra.musicxml;
+        }
+
+        if (obra.xml) {
+            return "partituras/" +
+                obra.xml;
+        }
+
+        if (obra.archivo) {
+            return "partituras/" +
+                obra.archivo;
+        }
+
+        if (obra.file) {
+            return "partituras/" +
+                obra.file;
+        }
+
+        return null;
+    }
+
+
+    /* =========================================================
+       CARGAR MUSICXML
+       ========================================================= */
+
+    function cargarMusicXML(obra) {
+
+        var ruta =
+            obtenerRutaXML(obra);
+
+
+        if (!ruta) {
+
+            estado.innerHTML =
+                "Partitura visual cargada. " +
+                "No encuentro el archivo MusicXML en lista.json.";
+
+            return;
+        }
+
+
+        estado.innerHTML =
+            "Cargando MusicXML...";
+
+
+        var xhr =
+            new XMLHttpRequest();
+
+
+        xhr.open(
+            "GET",
+            ruta,
+            true
+        );
+
+
+        xhr.onreadystatechange =
+            function () {
+
+                var parser;
+
+                if (
+                    xhr.readyState === 4
+                ) {
+
+                    if (
+                        xhr.status === 200 ||
+                        xhr.status === 0
+                    ) {
+
+                        try {
+
+                            parser =
+                                new DOMParser();
+
+                            xmlActual =
+                                parser.parseFromString(
+                                    xhr.responseText,
+                                    "text/xml"
+                                );
+
+
+                            prepararReproductor();
+
+                        } catch (e) {
+
+                            estado.innerHTML =
+                                "Error interpretando MusicXML: " +
+                                e.message;
+
+                        }
+
+                    } else {
+
+                        estado.innerHTML =
+                            "No se ha podido cargar el MusicXML.";
+
+                    }
+
+                }
+
+            };
+
+
+        xhr.send(null);
+    }
+
+
+    /* =========================================================
+       PREPARAR REPRODUCTOR
+       ========================================================= */
+
+    function prepararReproductor() {
+
+        var partes;
+        var maxCompases;
+        var tempoXML;
+
+
+        partes =
+            xmlActual.getElementsByTagName(
+                "part"
+            );
+
+
+        if (
+            !partes ||
+            partes.length === 0
+        ) {
+
+            estado.innerHTML =
+                "El MusicXML no contiene partes.";
+
+            return;
+        }
+
+
+        maxCompases =
+            obtenerNumeroCompases();
+
+
+        compasInicio.value = 1;
+        compasInicio.max =
+            maxCompases;
+
+        compasFin.value =
+            maxCompases;
+
+        compasFin.max =
+            maxCompases;
+
+
+        tempoXML =
+            obtenerTempoXML();
+
+
+        if (tempoXML > 0) {
+
+            tempoInput.value =
+                tempoXML;
+        }
+
+
+        actualizarNombresVoces();
+
+
+        panelReproductor.style.display =
+            "block";
+
+
+        estado.innerHTML =
+            "Partitura y MusicXML cargados correctamente.";
+
+
+        estadoReproductor.innerHTML =
+            "Preparado - " +
+            maxCompases +
+            " compases";
+    }
+
+
+    /* =========================================================
+       NUMERO DE COMPASES
+       ========================================================= */
+
+    function obtenerNumeroCompases() {
+
+        var parte =
+            obtenerPartePorId("P1");
+
+        var medidas;
+
+
+        if (!parte) {
+
+            return 1;
+        }
+
+
+        medidas =
+            obtenerHijosPorTag(
+                parte,
+                "measure"
+            );
+
+
+        return medidas.length;
+    }
+
+
+    /* =========================================================
+       TEMPO DEL XML
+       ========================================================= */
+
+    function obtenerTempoXML() {
+
+        var sonidos =
+            xmlActual.getElementsByTagName(
+                "sound"
+            );
+
+        var i;
+        var tempo;
+
+
+        for (
+            i = 0;
+            i < sonidos.length;
+            i++
+        ) {
+
+            tempo =
+                sonidos[i]
+                    .getAttribute(
+                        "tempo"
+                    );
+
+
+            if (tempo) {
+
+                tempo =
+                    parseFloat(
+                        tempo
+                    );
+
+
+                if (
+                    !isNaN(tempo) &&
+                    tempo > 0
+                ) {
+
+                    return tempo;
+                }
+
+            }
+
+        }
+
+
+        return 80;
+    }
+
+
+    /* =========================================================
+       NOMBRES DE LAS VOCES
+       ========================================================= */
+
+    function actualizarNombresVoces() {
+
+        var scoreParts =
+            xmlActual.getElementsByTagName(
+                "score-part"
+            );
+
+        var i;
+        var id;
+        var nombre;
+        var nombres;
+
+
+        for (
+            i = 0;
+            i < scoreParts.length;
+            i++
+        ) {
+
+            id =
+                scoreParts[i]
+                    .getAttribute(
+                        "id"
+                    );
+
+
+            nombres =
+                scoreParts[i]
+                    .getElementsByTagName(
+                        "part-name"
+                    );
+
+
+            if (
+                nombres.length > 0
+            ) {
+
+                nombre =
+                    textoNodo(
+                        nombres[0]
+                    );
+
+
+                if (
+                    document.getElementById(
+                        "voz" + id
+                    )
+                ) {
+
+                    document.getElementById(
+                        "voz" + id
+                    ).innerHTML =
+                        nombre;
+                }
+
+            }
+
+        }
+    }
+
+
+    /* =========================================================
+       OBTENER PARTE
+       ========================================================= */
+
+    function obtenerPartePorId(id) {
+
+        var partes =
+            xmlActual.getElementsByTagName(
+                "part"
+            );
+
+        var i;
+
+
+        for (
+            i = 0;
+            i < partes.length;
+            i++
+        ) {
+
+            if (
+                partes[i]
+                    .getAttribute(
+                        "id"
+                    ) === id
+            ) {
+
+                return partes[i];
+            }
+
+        }
+
+
+        return null;
+    }
+
+
+    /* =========================================================
+       REPRODUCCION
+       ========================================================= */
+
+    function reproducir() {
+
+        var AudioContext;
+
+        var inicio;
+        var fin;
+
+        var tempo;
+
+        var parte;
+
+        var eventos;
+
+        var i;
+
+        var inicioAudio;
+
+        var ultimoFinal;
+
+
+        if (!xmlActual) {
+
+            estadoReproductor.innerHTML =
+                "No hay MusicXML cargado.";
+
+            return;
+        }
+
+
+        parar();
+
+
+        AudioContext =
+            window.AudioContext ||
+            window.webkitAudioContext;
+
+
+        if (!AudioContext) {
+
+            estadoReproductor.innerHTML =
+                "Web Audio no está disponible.";
+
+            return;
+        }
+
+
+        if (!contextoAudio) {
+
+            contextoAudio =
+                new AudioContext();
+        }
+
+
+        inicio =
+            parseInt(
+                compasInicio.value,
+                10
+            );
+
+
+        fin =
+            parseInt(
+                compasFin.value,
+                10
+            );
+
+
+        tempo =
+            parseFloat(
+                tempoInput.value
+            );
+
+
+        if (
+            isNaN(tempo) ||
+            tempo < 30
+        ) {
+
+            tempo = 80;
+            tempoInput.value = 80;
+        }
+
+
+        if (
+            isNaN(inicio) ||
+            inicio < 1
+        ) {
+
+            inicio = 1;
+        }
+
+
+        if (
+            isNaN(fin) ||
+            fin < inicio
+        ) {
+
+            fin = inicio;
+        }
+
+
+        parte =
+            obtenerPartePorId(
+                vozActual
+            );
+
+
+        if (!parte) {
+
+            estadoReproductor.innerHTML =
+                "No encuentro la voz " +
+                vozActual;
+
+            return;
+        }
+
+
+        eventos =
+            crearEventos(
+                parte,
+                inicio,
+                fin,
+                tempo
+            );
+
+
+        if (
+            eventos.length === 0
+        ) {
+
+            estadoReproductor.innerHTML =
+                "No hay notas en esos compases.";
+
+            return;
+        }
+
+
+        reproduciendo = true;
+
+
+        inicioAudio =
+            contextoAudio.currentTime +
+            0.15;
+
+
+        ultimoFinal = 0;
+
+
+        for (
+            i = 0;
+            i < eventos.length;
+            i++
+        ) {
+
+            programarNota(
+                eventos[i],
+                inicioAudio
+            );
+
+
+            if (
+                eventos[i].inicio +
+                eventos[i].duracion >
+                ultimoFinal
+            ) {
+
+                ultimoFinal =
+                    eventos[i].inicio +
+                    eventos[i].duracion;
+            }
+
+        }
+
+
+        estadoReproductor.innerHTML =
+            "Reproduciendo " +
+            nombreVozActual() +
+            " - compases " +
+            inicio +
+            " a " +
+            fin;
+
+
+        temporizadorFin =
+            setTimeout(
+                function () {
+
+                    if (
+                        reproduciendo
+                    ) {
+
+                        reproduciendo =
+                            false;
+
+                        estadoReproductor.innerHTML =
+                            "Finalizado";
+
+                        osciladoresActivos =
+                            [];
+
+                    }
+
+                },
+                (
+                    ultimoFinal +
+                    0.5
+                ) * 1000
+            );
+    }
+
+
+    /* =========================================================
+       CREAR EVENTOS DESDE MUSICXML
+       ========================================================= */
+
+    function crearEventos(
+        parte,
+        inicioCompas,
+        finCompas,
+        tempo
+    ) {
+
+        var eventos = [];
+
+        var medidas =
+            obtenerHijosPorTag(
+                parte,
+                "measure"
+            );
+
+        var segundosNegra =
+            60 / tempo;
+
+        var tiempoActual = 0;
+
+        var divisions = 1;
+
+        var i;
+        var numeroCompas;
+
+        var atributos;
+        var divs;
+
+        var notas;
+        var n;
+
+        var duracionXML;
+        var duracionNegras;
+        var duracionSegundos;
+
+        var pitch;
+        var frecuencia;
+
+        var esAcorde;
+
+
+        for (
+            i = 0;
+            i < medidas.length;
+            i++
+        ) {
+
+            numeroCompas =
+                parseInt(
+                    medidas[i]
+                        .getAttribute(
+                            "number"
+                        ),
+                    10
+                );
+
+
+            /*
+             * Actualizar divisions
+             */
+
+            atributos =
+                obtenerHijosPorTag(
+                    medidas[i],
+                    "attributes"
+                );
+
+
+            if (
+                atributos.length > 0
+            ) {
+
+                divs =
+                    atributos[0]
+                        .getElementsByTagName(
+                            "divisions"
+                        );
+
+
+                if (
+                    divs.length > 0
+                ) {
+
+                    divisions =
+                        parseFloat(
+                            textoNodo(
+                                divs[0]
+                            )
+                        );
+
+
+                    if (
+                        !divisions ||
+                        divisions <= 0
+                    ) {
+
+                        divisions = 1;
+                    }
+
+                }
+
+            }
+
+
+            notas =
+                obtenerHijosPorTag(
+                    medidas[i],
+                    "note"
+                );
+
+
+            for (
+                n = 0;
+                n < notas.length;
+                n++
+            ) {
+
+                duracionXML =
+                    obtenerDuracionNota(
+                        notas[n]
+                    );
+
+
+                duracionNegras =
+                    duracionXML /
+                    divisions;
+
+
+                duracionSegundos =
+                    duracionNegras *
+                    segundosNegra;
+
+
+                esAcorde =
+                    notas[n]
+                        .getElementsByTagName(
+                            "chord"
+                        ).length > 0;
+
+
+                if (
+                    numeroCompas >=
+                        inicioCompas &&
+                    numeroCompas <=
+                        finCompas
+                ) {
+
+                    pitch =
+                        obtenerPitch(
+                            notas[n]
+                        );
+
+
+                    if (pitch) {
+
+                        frecuencia =
+                            notaAFrecuencia(
+                                pitch.step,
+                                pitch.alter,
+                                pitch.octave
+                            );
+
+
+                        eventos.push({
+                            inicio:
+                                tiempoActual,
+                            duracion:
+                                duracionSegundos,
+                            frecuencia:
+                                frecuencia,
+                            compas:
+                                numeroCompas
+                        });
+
+                    }
+
+                }
+
+
+                /*
+                 * Los elementos <chord>
+                 * empiezan al mismo tiempo
+                 * que la nota anterior.
+                 */
+
+                if (!esAcorde) {
+
+                    tiempoActual +=
+                        duracionSegundos;
+
+                }
+
+            }
+
+        }
+
+
+        /*
+         * Como tiempoActual contiene también
+         * los compases anteriores al inicio,
+         * desplazamos todo para empezar en 0.
+         */
+
+        if (
+            eventos.length > 0
+        ) {
+
+            var desplazamiento =
+                eventos[0].inicio;
+
+
+            for (
+                i = 0;
+                i < eventos.length;
+                i++
+            ) {
+
+                eventos[i].inicio -=
+                    desplazamiento;
+
+            }
+
+        }
+
+
+        return eventos;
+    }
+
+
+    /* =========================================================
+       DURACION
+       ========================================================= */
+
+    function obtenerDuracionNota(nota) {
+
+        var duraciones =
+            nota.getElementsByTagName(
+                "duration"
+            );
+
+
+        if (
+            duraciones.length === 0
+        ) {
+
+            return 0;
+        }
+
+
+        return parseFloat(
+            textoNodo(
+                duraciones[0]
+            )
+        );
+    }
+
+
+    /* =========================================================
+       PITCH
+       ========================================================= */
+
+    function obtenerPitch(nota) {
+
+        var pitches =
+            nota.getElementsByTagName(
+                "pitch"
+            );
+
+        var steps;
+        var alters;
+        var octaves;
+
+        var alter = 0;
+
+
+        if (
+            pitches.length === 0
+        ) {
+
+            return null;
+        }
+
+
+        steps =
+            pitches[0]
+                .getElementsByTagName(
+                    "step"
+                );
+
+
+        octaves =
+            pitches[0]
+                .getElementsByTagName(
+                    "octave"
+                );
+
+
+        alters =
+            pitches[0]
+                .getElementsByTagName(
+                    "alter"
+                );
+
+
+        if (
+            steps.length === 0 ||
+            octaves.length === 0
+        ) {
+
+            return null;
+        }
+
+
+        if (
+            alters.length > 0
+        ) {
+
+            alter =
+                parseInt(
+                    textoNodo(
+                        alters[0]
+                    ),
+                    10
+                );
+        }
+
+
+        return {
+            step:
+                textoNodo(
+                    steps[0]
+                ),
+            alter:
+                alter,
+            octave:
+                parseInt(
+                    textoNodo(
+                        octaves[0]
+                    ),
+                    10
+                )
+        };
+    }
+
+
+    /* =========================================================
+       NOTA -> FRECUENCIA
+       ========================================================= */
+
+    function notaAFrecuencia(
+        step,
+        alter,
+        octave
+    ) {
+
+        var mapa = {
+            "C": 0,
+            "D": 2,
+            "E": 4,
+            "F": 5,
+            "G": 7,
+            "A": 9,
+            "B": 11
+        };
+
+
+        var midi =
+            (
+                octave + 1
+            ) * 12 +
+            mapa[step] +
+            alter;
+
+
+        return 440 *
+            Math.pow(
+                2,
+                (midi - 69) / 12
+            );
+    }
+
+
+    /* =========================================================
+       PROGRAMAR NOTA
+       ========================================================= */
+
+    function programarNota(
+        evento,
+        inicioBase
+    ) {
+
+        var osc;
+        var gain;
+
+        var comienzo =
+            inicioBase +
+            evento.inicio;
+
+        var final =
+            comienzo +
+            evento.duracion;
+
+
+        osc =
+            contextoAudio
+                .createOscillator();
+
+
+        gain =
+            contextoAudio
+                .createGain();
+
+
+        /*
+         * Triangle resulta menos agresivo
+         * que sine/square para ensayar.
+         */
+
+        osc.type =
+            "triangle";
+
+
+        osc.frequency.value =
+            evento.frecuencia;
+
+
+        /*
+         * Envolvente sencilla para evitar
+         * clicks al empezar/parar.
+         */
+
+        gain.gain.setValueAtTime(
+            0.0001,
+            comienzo
+        );
+
+
+        gain.gain.linearRampToValueAtTime(
+            0.20,
+            comienzo + 0.03
+        );
+
+
+        gain.gain.setValueAtTime(
+            0.20,
+            Math.max(
+                comienzo + 0.03,
+                final - 0.05
+            )
+        );
+
+
+        gain.gain.linearRampToValueAtTime(
+            0.0001,
+            final
+        );
+
+
+        osc.connect(gain);
+
+        gain.connect(
+            contextoAudio.destination
+        );
+
+
+        osc.start(comienzo);
+
+        osc.stop(
+            final + 0.05
+        );
+
+
+        osciladoresActivos.push(
+            osc
+        );
+    }
+
+
+    /* =========================================================
+       PARAR
+       ========================================================= */
+
+    function parar() {
+
+        var i;
+
+
+        if (temporizadorFin) {
+
+            clearTimeout(
+                temporizadorFin
+            );
+
+            temporizadorFin =
+                null;
+        }
+
+
+        for (
+            i = 0;
+            i < osciladoresActivos.length;
+            i++
+        ) {
+
+            try {
+
+                osciladoresActivos[i]
+                    .stop(0);
+
+            } catch (e) {
+
+            }
+
+        }
+
+
+        osciladoresActivos = [];
+
+        reproduciendo = false;
+
+
+        if (
+            estadoReproductor
+        ) {
+
+            estadoReproductor.innerHTML =
+                "Parado";
+        }
+    }
+
+
+    /* =========================================================
+       SELECCION VOZ
+       ========================================================= */
+
+    function seleccionarVoz(id) {
+
+        vozActual = id;
+
+
+        quitarClaseActiva(
+            "vozP1"
+        );
+
+        quitarClaseActiva(
+            "vozP2"
+        );
+
+        quitarClaseActiva(
+            "vozP3"
+        );
+
+        quitarClaseActiva(
+            "vozP4"
+        );
+
+
+        document.getElementById(
+            "voz" + id
+        ).className +=
+            " voz-activa";
+
+
+        estadoReproductor.innerHTML =
+            "Voz seleccionada: " +
+            nombreVozActual();
+    }
+
+
+    function quitarClaseActiva(id) {
+
+        var elemento =
+            document.getElementById(id);
+
+
+        elemento.className =
+            elemento.className
+                .replace(
+                    " voz-activa",
+                    ""
+                );
+    }
+
+
+    function nombreVozActual() {
+
+        return document.getElementById(
+            "voz" + vozActual
+        ).innerHTML;
+    }
+
+
+    /* =========================================================
+       UTILIDADES XML
+       ========================================================= */
+
+    function obtenerHijosPorTag(
+        padre,
+        nombre
+    ) {
+
+        var resultado = [];
+
+        var hijos =
+            padre.childNodes;
+
+        var i;
+
+
+        for (
+            i = 0;
+            i < hijos.length;
+            i++
+        ) {
+
+            if (
+                hijos[i].nodeType === 1 &&
+                hijos[i].nodeName === nombre
+            ) {
+
+                resultado.push(
+                    hijos[i]
+                );
+            }
+
+        }
+
+
+        return resultado;
+    }
+
+
+    function textoNodo(nodo) {
+
+        if (
+            typeof nodo.textContent !==
+            "undefined"
+        ) {
+
+            return nodo.textContent;
+        }
+
+
+        return nodo.text;
+    }
+
+
+    /* =========================================================
+       ERRORES
+       ========================================================= */
+
+    function mostrarError(texto) {
+
+        estado.className =
+            "estado error";
+
+        estado.innerHTML =
+            texto;
+    }
+
+
+    /* =========================================================
+       EVENTOS
+       ========================================================= */
+
+    selector.onchange =
+        function () {
+
+            estado.className =
+                "estado";
+
+            cargarObra(
+                this.value
+            );
+        };
+
+
+    document.getElementById(
+        "vozP1"
+    ).onclick =
+        function () {
+
+            seleccionarVoz(
+                "P1"
+            );
+        };
+
+
+    document.getElementById(
+        "vozP2"
+    ).onclick =
+        function () {
+
+            seleccionarVoz(
+                "P2"
+            );
+        };
+
+
+    document.getElementById(
+        "vozP3"
+    ).onclick =
+        function () {
+
+            seleccionarVoz(
+                "P3"
+            );
+        };
+
+
+    document.getElementById(
+        "vozP4"
+    ).onclick =
+        function () {
+
+            seleccionarVoz(
+                "P4"
+            );
+        };
+
+
+    document.getElementById(
+        "tempoMenos"
+    ).onclick =
+        function () {
+
+            var valor =
+                parseInt(
+                    tempoInput.value,
+                    10
+                );
+
+
+            if (
+                isNaN(valor)
+            ) {
+
+                valor = 80;
+            }
+
+
+            valor -= 5;
+
+
+            if (
+                valor < 30
+            ) {
+
+                valor = 30;
+            }
+
+
+            tempoInput.value =
+                valor;
+        };
+
+
+    document.getElementById(
+        "tempoMas"
+    ).onclick =
+        function () {
+
+            var valor =
+                parseInt(
+                    tempoInput.value,
+                    10
+                );
+
+
+            if (
+                isNaN(valor)
+            ) {
+
+                valor = 80;
+            }
+
+
+            valor += 5;
+
+
+            if (
+                valor > 240
+            ) {
+
+                valor = 240;
+            }
+
+
+            tempoInput.value =
+                valor;
+        };
+
+
+    document.getElementById(
+        "reproducir"
+    ).onclick =
+        function () {
+
+            reproducir();
+        };
+
+
+    document.getElementById(
+        "parar"
+    ).onclick =
+        function () {
+
+            parar();
+        };
+
+
+    /* =========================================================
+       INICIAR
+       ========================================================= */
+
+    cargarLista();
+
+})();
+</script>
+
+</body>
+</html>.pagina {
     display: block;
     width: 100%;
     height: auto;
