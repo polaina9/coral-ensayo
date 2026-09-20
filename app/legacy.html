@@ -89,7 +89,7 @@ select {
 
 .voz-activa {
     background: #333;
-    color: white;
+    color: #fff;
 }
 
 .boton {
@@ -97,7 +97,7 @@ select {
     font-size: 17px;
     border: 1px solid #777;
     border-radius: 4px;
-    background: #eeeeee;
+    background: #eee;
     color: #111;
     -webkit-appearance: none;
 }
@@ -163,7 +163,7 @@ select {
     width: 100%;
     height: auto;
     margin: 0 auto 15px auto;
-    background: white;
+    background: #fff;
     border: 1px solid #ddd;
 }
 
@@ -200,78 +200,102 @@ select {
 
 
     <!-- REPRODUCTOR -->
+
     <div id="panelReproductor" class="panel">
 
         <div class="fila">
+
             <label>Voz:</label>
 
-            <button id="vozP1" class="voz voz-activa" type="button">
+            <button id="vozP1"
+                    class="voz voz-activa"
+                    type="button">
                 Soprano
             </button>
 
-            <button id="vozP2" class="voz" type="button">
+            <button id="vozP2"
+                    class="voz"
+                    type="button">
                 Contralto
             </button>
 
-            <button id="vozP3" class="voz" type="button">
+            <button id="vozP3"
+                    class="voz"
+                    type="button">
                 Tenor
             </button>
 
-            <button id="vozP4" class="voz" type="button">
+            <button id="vozP4"
+                    class="voz"
+                    type="button">
                 Bajo
             </button>
 
             <div class="limpiar"></div>
+
         </div>
 
 
+        <!-- TEMPO -->
+
         <div class="fila">
+
             <label>Tempo (BPM):</label>
 
             <div class="tempo">
-                <button id="tempoMenos" type="button">-</button>
 
-                <input
-                    id="tempo"
-                    type="number"
-                    value="80"
-                    min="30"
-                    max="240"
-                >
+                <button id="tempoMenos"
+                        type="button">
+                    -
+                </button>
 
-                <button id="tempoMas" type="button">+</button>
+                <input id="tempo"
+                       type="number"
+                       value="80"
+                       min="30"
+                       max="240">
+
+                <button id="tempoMas"
+                        type="button">
+                    +
+                </button>
+
             </div>
 
             <div class="limpiar"></div>
+
         </div>
 
+
+        <!-- COMPASES -->
 
         <div class="fila columnas">
 
             <div class="columna">
+
                 <label for="compasInicio">
                     Desde compás:
                 </label>
 
-                <input
-                    id="compasInicio"
-                    type="number"
-                    value="1"
-                    min="1"
-                >
+                <input id="compasInicio"
+                       type="number"
+                       value="1"
+                       min="1">
+
             </div>
 
+
             <div class="columna columna-derecha">
+
                 <label for="compasFin">
                     Hasta compás:
                 </label>
 
-                <input
-                    id="compasFin"
-                    type="number"
-                    value="1"
-                    min="1"
-                >
+                <input id="compasFin"
+                       type="number"
+                       value="1"
+                       min="1">
+
             </div>
 
             <div class="limpiar"></div>
@@ -279,22 +303,25 @@ select {
         </div>
 
 
+        <!-- BOTONES -->
+
         <div class="fila">
 
-            <button
-                id="reproducir"
-                class="boton boton-play"
-                type="button"
-            >
+            <button id="reproducir"
+                    class="boton boton-play"
+                    type="button">
+
                 &#9654; Reproducir
+
             </button>
 
-            <button
-                id="parar"
-                class="boton boton-stop"
-                type="button"
-            >
+
+            <button id="parar"
+                    class="boton boton-stop"
+                    type="button">
+
                 &#9632; Parar
+
             </button>
 
             <div class="limpiar"></div>
@@ -302,15 +329,21 @@ select {
         </div>
 
 
-        <div id="estadoReproductor" class="reproduciendo">
+        <div id="estadoReproductor"
+             class="reproduciendo">
+
             Preparado
+
         </div>
 
     </div>
 
 
     <!-- PARTITURA -->
-    <div id="partitura" class="partitura"></div>
+
+    <div id="partitura"
+         class="partitura">
+    </div>
 
 
     <div class="info">
@@ -323,9 +356,9 @@ select {
 <script>
 (function () {
 
-    /* =========================================================
-       VARIABLES GENERALES
-       ========================================================= */
+    /* =====================================================
+       VARIABLES
+       ===================================================== */
 
     var obras = [];
 
@@ -335,6 +368,7 @@ select {
     var vozActual = "P1";
 
     var contextoAudio = null;
+    var masterGain = null;
 
     var osciladoresActivos = [];
 
@@ -343,38 +377,54 @@ select {
     var temporizadorFin = null;
 
 
-    /* =========================================================
-       ELEMENTOS HTML
-       ========================================================= */
+    /* =====================================================
+       ELEMENTOS
+       ===================================================== */
 
-    var selector = document.getElementById("obra");
-    var estado = document.getElementById("estado");
-    var partitura = document.getElementById("partitura");
-    var titulo = document.getElementById("titulo");
+    var selector =
+        document.getElementById("obra");
+
+    var estado =
+        document.getElementById("estado");
+
+    var partitura =
+        document.getElementById("partitura");
+
+    var titulo =
+        document.getElementById("titulo");
 
     var panelReproductor =
-        document.getElementById("panelReproductor");
+        document.getElementById(
+            "panelReproductor"
+        );
 
     var estadoReproductor =
-        document.getElementById("estadoReproductor");
+        document.getElementById(
+            "estadoReproductor"
+        );
 
     var tempoInput =
         document.getElementById("tempo");
 
     var compasInicio =
-        document.getElementById("compasInicio");
+        document.getElementById(
+            "compasInicio"
+        );
 
     var compasFin =
-        document.getElementById("compasFin");
+        document.getElementById(
+            "compasFin"
+        );
 
 
-    /* =========================================================
-       CARGAR LISTA DE OBRAS
-       ========================================================= */
+    /* =====================================================
+       LISTA DE OBRAS
+       ===================================================== */
 
     function cargarLista() {
 
-        var xhr = new XMLHttpRequest();
+        var xhr =
+            new XMLHttpRequest();
 
         xhr.open(
             "GET",
@@ -382,43 +432,48 @@ select {
             true
         );
 
-        xhr.onreadystatechange = function () {
 
-            if (xhr.readyState === 4) {
+        xhr.onreadystatechange =
+            function () {
 
                 if (
-                    xhr.status === 200 ||
-                    xhr.status === 0
+                    xhr.readyState === 4
                 ) {
 
-                    try {
+                    if (
+                        xhr.status === 200 ||
+                        xhr.status === 0
+                    ) {
 
-                        obras =
-                            JSON.parse(
-                                xhr.responseText
+                        try {
+
+                            obras =
+                                JSON.parse(
+                                    xhr.responseText
+                                );
+
+                            mostrarLista();
+
+                        } catch (e) {
+
+                            mostrarError(
+                                "No se ha podido interpretar la lista."
                             );
 
-                        mostrarLista();
+                        }
 
-                    } catch (e) {
+                    } else {
 
                         mostrarError(
-                            "No se ha podido interpretar la lista."
+                            "No se ha podido cargar la lista de partituras."
                         );
 
                     }
 
-                } else {
-
-                    mostrarError(
-                        "No se ha podido cargar la lista de partituras."
-                    );
-
                 }
 
-            }
+            };
 
-        };
 
         xhr.send(null);
     }
@@ -429,10 +484,14 @@ select {
         var i;
         var opcion;
 
+
         selector.innerHTML = "";
 
+
         opcion =
-            document.createElement("option");
+            document.createElement(
+                "option"
+            );
 
         opcion.value = "";
 
@@ -442,13 +501,21 @@ select {
             )
         );
 
-        selector.appendChild(opcion);
+        selector.appendChild(
+            opcion
+        );
 
 
-        for (i = 0; i < obras.length; i++) {
+        for (
+            i = 0;
+            i < obras.length;
+            i++
+        ) {
 
             opcion =
-                document.createElement("option");
+                document.createElement(
+                    "option"
+                );
 
             opcion.value = i;
 
@@ -458,7 +525,10 @@ select {
                 )
             );
 
-            selector.appendChild(opcion);
+            selector.appendChild(
+                opcion
+            );
+
         }
 
 
@@ -469,13 +539,14 @@ select {
     }
 
 
-    /* =========================================================
-       SELECCIONAR OBRA
-       ========================================================= */
+    /* =====================================================
+       CARGAR OBRA
+       ===================================================== */
 
     function cargarObra(indice) {
 
         parar();
+
 
         partitura.innerHTML = "";
         titulo.innerHTML = "";
@@ -498,7 +569,10 @@ select {
 
         obraActual =
             obras[
-                parseInt(indice, 10)
+                parseInt(
+                    indice,
+                    10
+                )
             ];
 
 
@@ -516,15 +590,19 @@ select {
             obraActual.titulo;
 
 
-        cargarImagenes(obraActual);
+        cargarImagenes(
+            obraActual
+        );
 
-        cargarMusicXML(obraActual);
+        cargarMusicXML(
+            obraActual
+        );
     }
 
 
-    /* =========================================================
-       CARGAR IMAGENES
-       ========================================================= */
+    /* =====================================================
+       IMAGENES
+       ===================================================== */
 
     function cargarImagenes(obra) {
 
@@ -551,76 +629,88 @@ select {
         ) {
 
             imagen =
-                document.createElement("img");
+                document.createElement(
+                    "img"
+                );
 
             imagen.className =
                 "pagina";
 
+
             imagen.src =
                 "partituras/" +
                 paginas[i];
+
 
             imagen.alt =
                 obra.titulo +
                 " - página " +
                 (i + 1);
 
-            partitura.appendChild(imagen);
+
+            partitura.appendChild(
+                imagen
+            );
+
         }
     }
 
 
-    /* =========================================================
-       LOCALIZAR ARCHIVO MUSICXML
-       ========================================================= */
+    /* =====================================================
+       RUTA MUSICXML
+       ===================================================== */
 
     function obtenerRutaXML(obra) {
 
-        /*
-         * Intentamos diferentes nombres habituales
-         * por si lista.json utiliza una propiedad
-         * distinta.
-         */
-
         if (obra.musicxml) {
+
             return "partituras/" +
                 obra.musicxml;
         }
 
+
         if (obra.xml) {
+
             return "partituras/" +
                 obra.xml;
         }
 
+
         if (obra.archivo) {
+
             return "partituras/" +
                 obra.archivo;
         }
 
+
         if (obra.file) {
+
             return "partituras/" +
                 obra.file;
         }
+
 
         return null;
     }
 
 
-    /* =========================================================
+    /* =====================================================
        CARGAR MUSICXML
-       ========================================================= */
+       ===================================================== */
 
     function cargarMusicXML(obra) {
 
         var ruta =
-            obtenerRutaXML(obra);
+            obtenerRutaXML(
+                obra
+            );
 
 
         if (!ruta) {
 
             estado.innerHTML =
                 "Partitura visual cargada. " +
-                "No encuentro el archivo MusicXML en lista.json.";
+                "No encuentro el archivo MusicXML.";
 
             return;
         }
@@ -646,6 +736,7 @@ select {
 
                 var parser;
 
+
                 if (
                     xhr.readyState === 4
                 ) {
@@ -659,6 +750,7 @@ select {
 
                             parser =
                                 new DOMParser();
+
 
                             xmlActual =
                                 parser.parseFromString(
@@ -693,21 +785,19 @@ select {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        PREPARAR REPRODUCTOR
-       ========================================================= */
+       ===================================================== */
 
     function prepararReproductor() {
 
-        var partes;
-        var maxCompases;
-        var tempoXML;
-
-
-        partes =
+        var partes =
             xmlActual.getElementsByTagName(
                 "part"
             );
+
+        var maxCompases;
+        var tempoXML;
 
 
         if (
@@ -730,6 +820,7 @@ select {
         compasInicio.max =
             maxCompases;
 
+
         compasFin.value =
             maxCompases;
 
@@ -741,7 +832,9 @@ select {
             obtenerTempoXML();
 
 
-        if (tempoXML > 0) {
+        if (
+            tempoXML > 0
+        ) {
 
             tempoInput.value =
                 tempoXML;
@@ -749,6 +842,11 @@ select {
 
 
         actualizarNombresVoces();
+
+
+        seleccionarVoz(
+            "P1"
+        );
 
 
         panelReproductor.style.display =
@@ -766,14 +864,16 @@ select {
     }
 
 
-    /* =========================================================
-       NUMERO DE COMPASES
-       ========================================================= */
+    /* =====================================================
+       NUMERO COMPASES
+       ===================================================== */
 
     function obtenerNumeroCompases() {
 
         var parte =
-            obtenerPartePorId("P1");
+            obtenerPartePorId(
+                "P1"
+            );
 
         var medidas;
 
@@ -795,9 +895,9 @@ select {
     }
 
 
-    /* =========================================================
-       TEMPO DEL XML
-       ========================================================= */
+    /* =====================================================
+       TEMPO XML
+       ===================================================== */
 
     function obtenerTempoXML() {
 
@@ -848,9 +948,9 @@ select {
     }
 
 
-    /* =========================================================
-       NOMBRES DE LAS VOCES
-       ========================================================= */
+    /* =====================================================
+       NOMBRES VOCES
+       ===================================================== */
 
     function actualizarNombresVoces() {
 
@@ -861,8 +961,9 @@ select {
 
         var i;
         var id;
-        var nombre;
         var nombres;
+        var nombre;
+        var boton;
 
 
         for (
@@ -895,15 +996,15 @@ select {
                     );
 
 
-                if (
+                boton =
                     document.getElementById(
                         "voz" + id
-                    )
-                ) {
+                    );
 
-                    document.getElementById(
-                        "voz" + id
-                    ).innerHTML =
+
+                if (boton) {
+
+                    boton.innerHTML =
                         nombre;
                 }
 
@@ -913,9 +1014,9 @@ select {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        OBTENER PARTE
-       ========================================================= */
+       ===================================================== */
 
     function obtenerPartePorId(id) {
 
@@ -950,9 +1051,9 @@ select {
     }
 
 
-    /* =========================================================
-       REPRODUCCION
-       ========================================================= */
+    /* =====================================================
+       REPRODUCIR
+       ===================================================== */
 
     function reproducir() {
 
@@ -960,18 +1061,15 @@ select {
 
         var inicio;
         var fin;
-
         var tempo;
 
         var parte;
-
         var eventos;
 
-        var i;
-
         var inicioAudio;
-
         var ultimoFinal;
+
+        var i;
 
 
         if (!xmlActual) {
@@ -982,6 +1080,11 @@ select {
             return;
         }
 
+
+        /*
+         * Paramos cualquier reproducción
+         * anterior antes de crear una nueva.
+         */
 
         parar();
 
@@ -1000,11 +1103,39 @@ select {
         }
 
 
-        if (!contextoAudio) {
+        try {
 
             contextoAudio =
                 new AudioContext();
+
+        } catch (e) {
+
+            estadoReproductor.innerHTML =
+                "No se puede iniciar el audio.";
+
+            return;
         }
+
+
+        /*
+         * MASTER GAIN
+         *
+         * Todo el sonido pasa por aquí.
+         * Así Stop puede silenciar
+         * inmediatamente el reproductor.
+         */
+
+        masterGain =
+            contextoAudio.createGain();
+
+
+        masterGain.gain.value =
+            0.35;
+
+
+        masterGain.connect(
+            contextoAudio.destination
+        );
 
 
         inicio =
@@ -1033,7 +1164,20 @@ select {
         ) {
 
             tempo = 80;
-            tempoInput.value = 80;
+
+            tempoInput.value =
+                tempo;
+        }
+
+
+        if (
+            tempo > 240
+        ) {
+
+            tempo = 240;
+
+            tempoInput.value =
+                tempo;
         }
 
 
@@ -1064,8 +1208,9 @@ select {
         if (!parte) {
 
             estadoReproductor.innerHTML =
-                "No encuentro la voz " +
-                vozActual;
+                "No encuentro la voz seleccionada.";
+
+            cerrarAudio();
 
             return;
         }
@@ -1087,11 +1232,14 @@ select {
             estadoReproductor.innerHTML =
                 "No hay notas en esos compases.";
 
+            cerrarAudio();
+
             return;
         }
 
 
-        reproduciendo = true;
+        reproduciendo =
+            true;
 
 
         inicioAudio =
@@ -1148,15 +1296,18 @@ select {
                         reproduciendo =
                             false;
 
+                        osciladoresActivos =
+                            [];
+
                         estadoReproductor.innerHTML =
                             "Finalizado";
 
-                        osciladoresActivos =
-                            [];
+                        cerrarAudio();
 
                     }
 
                 },
+
                 (
                     ultimoFinal +
                     0.5
@@ -1165,9 +1316,9 @@ select {
     }
 
 
-    /* =========================================================
-       CREAR EVENTOS DESDE MUSICXML
-       ========================================================= */
+    /* =====================================================
+       CREAR EVENTOS
+       ===================================================== */
 
     function crearEventos(
         parte,
@@ -1184,21 +1335,25 @@ select {
                 "measure"
             );
 
+
         var segundosNegra =
             60 / tempo;
+
 
         var tiempoActual = 0;
 
         var divisions = 1;
 
+
         var i;
+        var n;
+
         var numeroCompas;
 
         var atributos;
         var divs;
 
         var notas;
-        var n;
 
         var duracionXML;
         var duracionNegras;
@@ -1208,6 +1363,12 @@ select {
         var frecuencia;
 
         var esAcorde;
+
+        var tieStart;
+        var tieStop;
+
+        var eventoAnterior;
+        var desplazamiento;
 
 
         for (
@@ -1227,7 +1388,7 @@ select {
 
 
             /*
-             * Actualizar divisions
+             * DIVISIONS
              */
 
             atributos =
@@ -1303,44 +1464,129 @@ select {
 
 
                 esAcorde =
-                    notas[n]
-                        .getElementsByTagName(
-                            "chord"
-                        ).length > 0;
+                    tieneElemento(
+                        notas[n],
+                        "chord"
+                    );
 
+
+                tieStart =
+                    tieneTie(
+                        notas[n],
+                        "start"
+                    );
+
+
+                tieStop =
+                    tieneTie(
+                        notas[n],
+                        "stop"
+                    );
+
+
+                pitch =
+                    obtenerPitch(
+                        notas[n]
+                    );
+
+
+                /*
+                 * Sólo generamos eventos dentro
+                 * del rango seleccionado.
+                 */
 
                 if (
                     numeroCompas >=
                         inicioCompas &&
                     numeroCompas <=
-                        finCompas
+                        finCompas &&
+                    pitch
                 ) {
 
-                    pitch =
-                        obtenerPitch(
-                            notas[n]
+                    frecuencia =
+                        notaAFrecuencia(
+                            pitch.step,
+                            pitch.alter,
+                            pitch.octave
                         );
 
 
-                    if (pitch) {
+                    /*
+                     * Si es continuación de una
+                     * ligadura, intentamos añadir
+                     * su duración al evento anterior
+                     * de la misma nota.
+                     */
 
-                        frecuencia =
-                            notaAFrecuencia(
-                                pitch.step,
-                                pitch.alter,
-                                pitch.octave
+                    if (tieStop) {
+
+                        eventoAnterior =
+                            buscarEventoLigado(
+                                eventos,
+                                frecuencia
                             );
 
+
+                        if (eventoAnterior) {
+
+                            eventoAnterior.duracion +=
+                                duracionSegundos;
+
+
+                            /*
+                             * Si además tiene start,
+                             * la ligadura continúa.
+                             */
+
+                            eventoAnterior.ligado =
+                                tieStart;
+
+
+                        } else {
+
+                            /*
+                             * Si comenzamos justo en
+                             * medio de una ligadura,
+                             * necesitamos reproducirla
+                             * igualmente.
+                             */
+
+                            eventos.push({
+                                inicio:
+                                    tiempoActual,
+
+                                duracion:
+                                    duracionSegundos,
+
+                                frecuencia:
+                                    frecuencia,
+
+                                compas:
+                                    numeroCompas,
+
+                                ligado:
+                                    tieStart
+                            });
+
+                        }
+
+                    } else {
 
                         eventos.push({
                             inicio:
                                 tiempoActual,
+
                             duracion:
                                 duracionSegundos,
+
                             frecuencia:
                                 frecuencia,
+
                             compas:
-                                numeroCompas
+                                numeroCompas,
+
+                            ligado:
+                                tieStart
                         });
 
                     }
@@ -1349,16 +1595,14 @@ select {
 
 
                 /*
-                 * Los elementos <chord>
-                 * empiezan al mismo tiempo
-                 * que la nota anterior.
+                 * Un elemento chord no avanza
+                 * el reloj musical.
                  */
 
                 if (!esAcorde) {
 
                     tiempoActual +=
                         duracionSegundos;
-
                 }
 
             }
@@ -1367,16 +1611,15 @@ select {
 
 
         /*
-         * Como tiempoActual contiene también
-         * los compases anteriores al inicio,
-         * desplazamos todo para empezar en 0.
+         * Desplazamos el primer evento
+         * seleccionado al segundo 0.
          */
 
         if (
             eventos.length > 0
         ) {
 
-            var desplazamiento =
+            desplazamiento =
                 eventos[0].inicio;
 
 
@@ -1388,7 +1631,6 @@ select {
 
                 eventos[i].inicio -=
                     desplazamiento;
-
             }
 
         }
@@ -1398,11 +1640,110 @@ select {
     }
 
 
-    /* =========================================================
-       DURACION
-       ========================================================= */
+    /* =====================================================
+       BUSCAR EVENTO LIGADO
+       ===================================================== */
 
-    function obtenerDuracionNota(nota) {
+    function buscarEventoLigado(
+        eventos,
+        frecuencia
+    ) {
+
+        var i;
+        var evento;
+
+
+        for (
+            i = eventos.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            evento =
+                eventos[i];
+
+
+            if (
+                evento.ligado &&
+                Math.abs(
+                    evento.frecuencia -
+                    frecuencia
+                ) < 0.01
+            ) {
+
+                return evento;
+            }
+
+        }
+
+
+        return null;
+    }
+
+
+    /* =====================================================
+       DETECTAR TIE
+       ===================================================== */
+
+    function tieneTie(
+        nota,
+        tipo
+    ) {
+
+        var ties =
+            nota.getElementsByTagName(
+                "tie"
+            );
+
+        var i;
+
+
+        for (
+            i = 0;
+            i < ties.length;
+            i++
+        ) {
+
+            if (
+                ties[i]
+                    .getAttribute(
+                        "type"
+                    ) === tipo
+            ) {
+
+                return true;
+            }
+
+        }
+
+
+        return false;
+    }
+
+
+    /* =====================================================
+       ELEMENTO EXISTE
+       ===================================================== */
+
+    function tieneElemento(
+        nodo,
+        nombre
+    ) {
+
+        return nodo
+            .getElementsByTagName(
+                nombre
+            ).length > 0;
+    }
+
+
+    /* =====================================================
+       DURACION
+       ===================================================== */
+
+    function obtenerDuracionNota(
+        nota
+    ) {
 
         var duraciones =
             nota.getElementsByTagName(
@@ -1426,9 +1767,9 @@ select {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        PITCH
-       ========================================================= */
+       ===================================================== */
 
     function obtenerPitch(nota) {
 
@@ -1493,16 +1834,28 @@ select {
                     ),
                     10
                 );
+
+
+            if (
+                isNaN(alter)
+            ) {
+
+                alter = 0;
+            }
+
         }
 
 
         return {
+
             step:
                 textoNodo(
                     steps[0]
                 ),
+
             alter:
                 alter,
+
             octave:
                 parseInt(
                     textoNodo(
@@ -1510,13 +1863,14 @@ select {
                     ),
                     10
                 )
+
         };
     }
 
 
-    /* =========================================================
+    /* =====================================================
        NOTA -> FRECUENCIA
-       ========================================================= */
+       ===================================================== */
 
     function notaAFrecuencia(
         step,
@@ -1525,6 +1879,7 @@ select {
     ) {
 
         var mapa = {
+
             "C": 0,
             "D": 2,
             "E": 4,
@@ -1532,6 +1887,7 @@ select {
             "G": 7,
             "A": 9,
             "B": 11
+
         };
 
 
@@ -1551,9 +1907,9 @@ select {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        PROGRAMAR NOTA
-       ========================================================= */
+       ===================================================== */
 
     function programarNota(
         evento,
@@ -1563,13 +1919,42 @@ select {
         var osc;
         var gain;
 
-        var comienzo =
+        var comienzo;
+        var final;
+
+        var ataque;
+        var salida;
+
+
+        if (
+            !contextoAudio ||
+            !masterGain
+        ) {
+
+            return;
+        }
+
+
+        comienzo =
             inicioBase +
             evento.inicio;
 
-        var final =
+
+        final =
             comienzo +
             evento.duracion;
+
+
+        /*
+         * Evitar duraciones inválidas.
+         */
+
+        if (
+            evento.duracion <= 0
+        ) {
+
+            return;
+        }
 
 
         osc =
@@ -1583,22 +1968,44 @@ select {
 
 
         /*
-         * Triangle resulta menos agresivo
-         * que sine/square para ensayar.
+         * SINE suena bastante más limpio
+         * que TRIANGLE en dispositivos
+         * antiguos.
          */
 
         osc.type =
-            "triangle";
+            "sine";
 
 
-        osc.frequency.value =
-            evento.frecuencia;
+        osc.frequency.setValueAtTime(
+            evento.frecuencia,
+            comienzo
+        );
 
 
         /*
-         * Envolvente sencilla para evitar
-         * clicks al empezar/parar.
+         * Volumen individual muy bajo.
+         *
+         * Después pasa además por
+         * masterGain.
          */
+
+        ataque =
+            comienzo + 0.025;
+
+
+        salida =
+            final - 0.04;
+
+
+        if (
+            salida < ataque
+        ) {
+
+            salida =
+                ataque;
+        }
+
 
         gain.gain.setValueAtTime(
             0.0001,
@@ -1607,17 +2014,14 @@ select {
 
 
         gain.gain.linearRampToValueAtTime(
-            0.20,
-            comienzo + 0.03
+            0.12,
+            ataque
         );
 
 
         gain.gain.setValueAtTime(
-            0.20,
-            Math.max(
-                comienzo + 0.03,
-                final - 0.05
-            )
+            0.12,
+            salida
         );
 
 
@@ -1627,14 +2031,29 @@ select {
         );
 
 
-        osc.connect(gain);
-
-        gain.connect(
-            contextoAudio.destination
+        osc.connect(
+            gain
         );
 
 
-        osc.start(comienzo);
+        /*
+         * IMPORTANTE:
+         *
+         * Ya no conectamos cada nota
+         * directamente al altavoz.
+         *
+         * Todas pasan por masterGain.
+         */
+
+        gain.connect(
+            masterGain
+        );
+
+
+        osc.start(
+            comienzo
+        );
+
 
         osc.stop(
             final + 0.05
@@ -1647,16 +2066,18 @@ select {
     }
 
 
-    /* =========================================================
-       PARAR
-       ========================================================= */
+    /* =====================================================
+       STOP
+       ===================================================== */
 
     function parar() {
 
         var i;
 
 
-        if (temporizadorFin) {
+        if (
+            temporizadorFin
+        ) {
 
             clearTimeout(
                 temporizadorFin
@@ -1666,6 +2087,39 @@ select {
                 null;
         }
 
+
+        /*
+         * Primero silenciamos TODO.
+         *
+         * Esto hace que Stop sea inmediato
+         * incluso si Safari no cancela bien
+         * los osciladores programados.
+         */
+
+        if (
+            masterGain &&
+            contextoAudio
+        ) {
+
+            try {
+
+                masterGain.gain
+                    .setValueAtTime(
+                        0,
+                        contextoAudio.currentTime
+                    );
+
+            } catch (e) {
+
+            }
+
+        }
+
+
+        /*
+         * Después intentamos parar
+         * todos los osciladores.
+         */
 
         for (
             i = 0;
@@ -1678,7 +2132,17 @@ select {
                 osciladoresActivos[i]
                     .stop(0);
 
-            } catch (e) {
+            } catch (e2) {
+
+            }
+
+
+            try {
+
+                osciladoresActivos[i]
+                    .disconnect();
+
+            } catch (e3) {
 
             }
 
@@ -1687,7 +2151,17 @@ select {
 
         osciladoresActivos = [];
 
-        reproduciendo = false;
+
+        /*
+         * Finalmente cerramos el
+         * AudioContext.
+         */
+
+        cerrarAudio();
+
+
+        reproduciendo =
+            false;
 
 
         if (
@@ -1700,9 +2174,41 @@ select {
     }
 
 
-    /* =========================================================
-       SELECCION VOZ
-       ========================================================= */
+    /* =====================================================
+       CERRAR AUDIO
+       ===================================================== */
+
+    function cerrarAudio() {
+
+        if (
+            contextoAudio
+        ) {
+
+            try {
+
+                if (
+                    contextoAudio.close
+                ) {
+
+                    contextoAudio.close();
+                }
+
+            } catch (e) {
+
+            }
+
+        }
+
+
+        contextoAudio = null;
+
+        masterGain = null;
+    }
+
+
+    /* =====================================================
+       SELECCIONAR VOZ
+       ===================================================== */
 
     function seleccionarVoz(id) {
 
@@ -1726,22 +2232,42 @@ select {
         );
 
 
-        document.getElementById(
-            "voz" + id
-        ).className +=
-            " voz-activa";
+        var boton =
+            document.getElementById(
+                "voz" + id
+            );
 
 
-        estadoReproductor.innerHTML =
-            "Voz seleccionada: " +
-            nombreVozActual();
+        if (boton) {
+
+            boton.className +=
+                " voz-activa";
+        }
+
+
+        if (
+            estadoReproductor
+        ) {
+
+            estadoReproductor.innerHTML =
+                "Voz seleccionada: " +
+                nombreVozActual();
+        }
     }
 
 
     function quitarClaseActiva(id) {
 
         var elemento =
-            document.getElementById(id);
+            document.getElementById(
+                id
+            );
+
+
+        if (!elemento) {
+
+            return;
+        }
 
 
         elemento.className =
@@ -1755,15 +2281,25 @@ select {
 
     function nombreVozActual() {
 
-        return document.getElementById(
-            "voz" + vozActual
-        ).innerHTML;
+        var boton =
+            document.getElementById(
+                "voz" + vozActual
+            );
+
+
+        if (!boton) {
+
+            return vozActual;
+        }
+
+
+        return boton.innerHTML;
     }
 
 
-    /* =========================================================
+    /* =====================================================
        UTILIDADES XML
-       ========================================================= */
+       ===================================================== */
 
     function obtenerHijosPorTag(
         padre,
@@ -1816,9 +2352,9 @@ select {
     }
 
 
-    /* =========================================================
-       ERRORES
-       ========================================================= */
+    /* =====================================================
+       ERROR
+       ===================================================== */
 
     function mostrarError(texto) {
 
@@ -1830,9 +2366,9 @@ select {
     }
 
 
-    /* =========================================================
+    /* =====================================================
        EVENTOS
-       ========================================================= */
+       ===================================================== */
 
     selector.onchange =
         function () {
@@ -1980,9 +2516,9 @@ select {
         };
 
 
-    /* =========================================================
+    /* =====================================================
        INICIAR
-       ========================================================= */
+       ===================================================== */
 
     cargarLista();
 
